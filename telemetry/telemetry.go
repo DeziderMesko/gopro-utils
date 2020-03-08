@@ -6,7 +6,7 @@ import (
 	"github.com/paulmach/go.geo"
 )
 
-// Represents one second of telemetry data
+// Represents telemetry data between "DVID" blocks (typically about 1 second)
 type TELEM struct {
 	Accl        []ACCL
 	Gps         []GPS5
