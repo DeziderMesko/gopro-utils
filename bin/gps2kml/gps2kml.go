@@ -5,7 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/JuanIrache/gopro-utils/telemetry"//getting rid of some bugs
+	"github.com/mpr90/gopro-utils/telemetry"//getting rid of some bugs
 	"io"
 	"os"
 	"time"
@@ -89,7 +89,7 @@ func main() {
 		}
 
 		// process until t.GpsTime
-		t_prev.FillTimes(t.Time.Time)
+		t_prev.FillTimes(t.GpsTime.Time)
 
 		// 		<Placemark>
 		// 		<Point><coordinates>LON,LAT,ALT</coordinates></Point>

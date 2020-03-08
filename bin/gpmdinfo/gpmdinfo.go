@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/JuanIrache/gopro-utils/telemetry"	//linking to my own repository while the main one is behind. Not sure if this is a good practice
+	"github.com/mpr90/gopro-utils/telemetry"	//linking to my own repository while the main one is behind. Not sure if this is a good practice
 )
 
 func main() {

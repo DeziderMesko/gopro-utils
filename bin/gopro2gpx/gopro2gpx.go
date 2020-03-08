@@ -11,7 +11,7 @@ import (
 	"time"
 	"strconv"
 
-	"github.com/JuanIrache/gopro-utils/telemetry"
+	"github.com/mpr90/gopro-utils/telemetry"
 	"github.com/mlouielu/gpxgo/gpx"
 )
 
@@ -60,7 +60,7 @@ func main() {
 		}
 
 		// process until t.GpsTime
-		t_prev.FillTimes(t.Time.Time)
+		t_prev.FillTimes(t.GpsTime.Time)
 		if t_prev.GpsAccuracy.Accuracy < uint16(*accuracyThreshold) && t_prev.GpsFix.F >= uint32(*fixThreshold) {
 			telems := t_prev.ShitJson()
 			

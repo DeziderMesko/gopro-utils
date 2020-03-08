@@ -1,5 +1,10 @@
 .DS_Store
 GPMD2CSV/bin/
 *.csv
+bin/gopro2geojson/gopro2geojson.exe
+bin/gopro2gpx/gopro2gpx.exe
+bin/gopro2json/gopro2json.exe
 bin/gpmd2csv/gpmd2csv.exe
+bin/gpmdinfo/gpmdinfo.exe
+bin/gps2kml/gps2kml.exe
 workspace.xml
