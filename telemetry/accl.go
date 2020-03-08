@@ -8,9 +8,10 @@ import (
 
 // Accelerometer in m/s for XYZ
 type ACCL struct {
-	X float64
-	Y float64
-	Z float64
+	X  float64
+	Y  float64
+	Z  float64
+	Ms float64
 	TS int64
 }
 

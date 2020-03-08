@@ -1,21 +1,106 @@
 package main
 
 import (
+	"encoding/csv"
 	"flag"
 	"fmt"
-	"io"
-	"os"
 	"github.com/mpr90/gopro-utils/telemetry"
-
+	"io"
+	"log"
+	"math"
+	"os"
 	//////used for csv
 	"strconv"
-    "log"
-	"encoding/csv"
 	"strings"
-
 )
 
+type ACCLGYRO struct {
+	X  []float64
+	Y  []float64
+	Z  []float64
+	FilteredX  []float64
+	FilteredY  []float64
+	FilteredZ  []float64
+	Ms []float64
+	TS []int64
+}
+
 func main() {
+
+	/*
+
+	   FIR filter designed with
+	   http://t-filter.appspot.com
+
+	   sampling frequency: 200 Hz
+
+	   * 0 Hz - 5 Hz
+	     gain = 1
+	     desired ripple = 5 dB
+	     actual ripple = 3.7428345110667873 dB
+
+	   * 10 Hz - 100 Hz
+	     gain = 0
+	     desired attenuation = -40 dB
+	     actual attenuation = -40.91898560530998 dB
+
+	*/
+
+	filter_taps := []float64{
+		-0.005946901269245115,
+		-0.003221105934752317,
+		-0.003844069990276836,
+		-0.004335185893314174,
+		-0.004618082667223955,
+		-0.004610544806595842,
+		-0.004229573289430783,
+		-0.003391745396869743,
+		-0.0020280510416206413,
+		-0.00007797378693000673,
+		0.002492691628631226,
+		0.00569982765877049,
+		0.009534812572960348,
+		0.013961833701309632,
+		0.018917781140524174,
+		0.02430952185560112,
+		0.030016610101736976,
+		0.03589781173597167,
+		0.04180040186066689,
+		0.04755534497978652,
+		0.052984157628638756,
+		0.057920150927138224,
+		0.062213967331716837,
+		0.06570516590449127,
+		0.06829411291109368,
+		0.069881349050518,
+		0.07041715978547827,
+		0.069881349050518,
+		0.06829411291109368,
+		0.06570516590449127,
+		0.062213967331716837,
+		0.057920150927138224,
+		0.052984157628638756,
+		0.04755534497978652,
+		0.04180040186066689,
+		0.03589781173597167,
+		0.030016610101736976,
+		0.02430952185560112,
+		0.018917781140524174,
+		0.013961833701309632,
+		0.009534812572960348,
+		0.00569982765877049,
+		0.002492691628631226,
+		-0.00007797378693000673,
+		-0.0020280510416206413,
+		-0.003391745396869743,
+		-0.004229573289430783,
+		-0.004610544806595842,
+		-0.004618082667223955,
+		-0.004335185893314174,
+		-0.003844069990276836,
+		-0.003221105934752317,
+		-0.005946901269245115,
+	}
 
 	inName := flag.String("i", "", "Required: telemetry file to read")
 	outName := flag.String("o", "", "Output csv files")
@@ -37,7 +122,6 @@ func main() {
 		selected = "agyt"
 	}
 
-
 	////////////////////variables for CSV
 	var acclCsv, gyroCsv, tempCsv, gpsCsv [][]string
 	var acclWriter, gyroWriter, tempWriter, gpsWriter *csv.Writer
@@ -45,7 +129,7 @@ func main() {
 	////////////////////accelerometer
 	
 	if strings.Contains(selected, "a") {
-		acclCsv = [][]string{{"Milliseconds","AcclX","AcclY","AcclZ","TS"}}
+		acclCsv = [][]string{{"Milliseconds","AcclX","AcclY","AcclZ","TS","AcclX_Filt","AcclY_Filt","AcclZ_Filt"}}
 		acclFile, err := os.Create(nameOut[:len(nameOut)-4]+"-accl.csv")
 		checkError("Cannot create accl.csv file", err)
 		defer acclFile.Close()
@@ -54,7 +138,7 @@ func main() {
 	
 	/////////////////////gyroscope
 	if strings.Contains(selected, "y") {
-		gyroCsv = [][]string{{"Milliseconds","GyroX","GyroY","GyroZ"}}
+		gyroCsv = [][]string{{"Milliseconds","GyroX","GyroY","GyroZ","TS","GyroX_Filt","GyroY_Filt","GyroZ_Filt"}}
 		gyroFile, err := os.Create(nameOut[:len(nameOut)-4]+"-gyro.csv")
 		checkError("Cannot create gyro.csv file", err)
 		defer gyroFile.Close()
@@ -96,6 +180,10 @@ func main() {
 	t := &telemetry.TELEM{}
 	t_prev := &telemetry.TELEM{}
 
+	// all acceleration data
+	var accl ACCLGYRO
+	var gyro ACCLGYRO
+
 	var seconds float64 = -2
 	var initialMilliseconds float64 = 0
 	for {
@@ -132,14 +220,26 @@ func main() {
 		if strings.Contains(selected, "a") {
 			for i, _ := range t_prev.Accl {
 				milliseconds := float64(seconds*1000) + (float64(delta.Milliseconds())/float64(len(t_prev.Accl)))*float64(i)
-				acclCsv = append(acclCsv, []string{floattostr(milliseconds),floattostr(t_prev.Accl[i].X),floattostr(t_prev.Accl[i].Y),floattostr(t_prev.Accl[i].Z),int64tostr(t_prev.Accl[i].TS)})
+				t_prev.Accl[i].Ms  = milliseconds
+
+				accl.X  = append(accl.X,  t_prev.Accl[i].X)
+				accl.Y  = append(accl.Y,  t_prev.Accl[i].Y)
+				accl.Z  = append(accl.Z,  t_prev.Accl[i].Z)
+				accl.TS = append(accl.TS, t_prev.Accl[i].TS)
+				accl.Ms = append(accl.Ms, t_prev.Accl[i].Ms)
 			}
 		}
 		/////////////////////Gyroscope
 		if strings.Contains(selected, "y") {
 			for i, _ := range t_prev.Gyro {
 				milliseconds := float64(seconds*1000) + (float64(delta.Milliseconds())/float64(len(t_prev.Gyro)))*float64(i)
-				gyroCsv = append(gyroCsv, []string{floattostr(milliseconds),floattostr(t_prev.Gyro[i].X),floattostr(t_prev.Gyro[i].Y),floattostr(t_prev.Gyro[i].Z),int64tostr(t_prev.Gyro[i].TS)})
+				t_prev.Gyro[i].Ms  = milliseconds
+
+				gyro.X  = append(gyro.X,  t_prev.Gyro[i].X)
+				gyro.Y  = append(gyro.Y,  t_prev.Gyro[i].Y)
+				gyro.Z  = append(gyro.Z,  t_prev.Gyro[i].Z)
+				gyro.TS = append(gyro.TS, t_prev.Gyro[i].TS)
+				gyro.Ms = append(gyro.Ms, t_prev.Gyro[i].Ms)
 			}
 		}
 		////////////////////Temperature
@@ -154,8 +254,21 @@ func main() {
 		seconds++
 	}
 	/////////////////////////////////////////////////////////////////////////////////////for csv
+	// Filter the accel and gyro data
+	accl.FilteredX, err = MyConvolve(accl.X, filter_taps)
+	accl.FilteredY, err = MyConvolve(accl.Y, filter_taps)
+	accl.FilteredZ, err = MyConvolve(accl.Z, filter_taps)
+
+	gyro.FilteredX, err = MyConvolve(gyro.X, filter_taps)
+	gyro.FilteredY, err = MyConvolve(gyro.Y, filter_taps)
+	gyro.FilteredZ, err = MyConvolve(gyro.Z, filter_taps)
+
 	///////////////accelerometer
 	if strings.Contains(selected, "a") {
+		for i, _ := range accl.FilteredX {
+			acclCsv = append(acclCsv, []string{floattostr(accl.Ms[i]), floattostr(accl.X[i]), floattostr(accl.Y[i]), floattostr(accl.Z[i]), int64tostr(accl.TS[i]), floattostr(accl.FilteredX[i]), floattostr(accl.FilteredY[i]), floattostr(accl.FilteredZ[i])})
+		}
+
 		for _, value := range acclCsv {
 			err := acclWriter.Write(value)
 			checkError("Cannot write to accl.csv file", err)
@@ -164,6 +277,10 @@ func main() {
 	}
 	///////////////gyroscope
 	if strings.Contains(selected, "y") {
+		for i, _ := range gyro.FilteredX {
+			gyroCsv = append(gyroCsv, []string{floattostr(gyro.Ms[i]), floattostr(gyro.X[i]), floattostr(gyro.Y[i]), floattostr(gyro.Z[i]), int64tostr(gyro.TS[i]), floattostr(gyro.FilteredX[i]), floattostr(gyro.FilteredY[i]), floattostr(gyro.FilteredZ[i])})
+		}
+
 		for _, value := range gyroCsv {
 			err := gyroWriter.Write(value)
 			checkError("Cannot write to gyro.csv file", err)
@@ -187,6 +304,28 @@ func main() {
 		defer gpsWriter.Flush()
 	}
     /////////////////////////////////////////////////////////////////////////////////////
+}
+
+func MyConvolve(input, kernels []float64) ([]float64, error) {
+	if !(len(input) > len(kernels)) {
+		return nil, fmt.Errorf("provided data set is not greater than the filter weights")
+	}
+
+	output := make([]float64, len(input))
+	start := int(math.Floor(float64(len(kernels))/2))
+	end := len(input)-start
+
+	for i := start; i < end; i++ {
+		var sum float64
+
+		for j := 0; j < len(kernels); j++ {
+			sum += input[i-start+j] * kernels[j]
+		}
+		output[i] = sum
+
+	}
+
+	return output, nil
 }
 
 
