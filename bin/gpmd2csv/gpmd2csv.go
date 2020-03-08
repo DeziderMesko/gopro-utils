@@ -45,7 +45,7 @@ func main() {
 	////////////////////accelerometer
 	
 	if strings.Contains(selected, "a") {
-		acclCsv = [][]string{{"Milliseconds","AcclX","AcclY","AcclZ"}}
+		acclCsv = [][]string{{"Milliseconds","AcclX","AcclY","AcclZ","TS"}}
 		acclFile, err := os.Create(nameOut[:len(nameOut)-4]+"-accl.csv")
 		checkError("Cannot create accl.csv file", err)
 		defer acclFile.Close()
@@ -111,7 +111,7 @@ func main() {
 			break
 		}
 
-		t_prev.FillTimes(t.GpsTime.Time)
+		delta := t_prev.FillTimes(t.GpsTime.Time)
 
 		//fmt.Println(t.GpsTime.GpsTime)
 
@@ -131,15 +131,15 @@ func main() {
 		/////////////////////Accelerometer
 		if strings.Contains(selected, "a") {
 			for i, _ := range t_prev.Accl {
-				milliseconds := float64(seconds*1000)+float64(((float64(1000)/float64(len(t_prev.Accl)))*float64(i)))
-				acclCsv = append(acclCsv, []string{floattostr(milliseconds),floattostr(t_prev.Accl[i].X),floattostr(t_prev.Accl[i].Y),floattostr(t_prev.Accl[i].Z)})
+				milliseconds := float64(seconds*1000) + (float64(delta.Milliseconds())/float64(len(t_prev.Accl)))*float64(i)
+				acclCsv = append(acclCsv, []string{floattostr(milliseconds),floattostr(t_prev.Accl[i].X),floattostr(t_prev.Accl[i].Y),floattostr(t_prev.Accl[i].Z),int64tostr(t_prev.Accl[i].TS)})
 			}
 		}
 		/////////////////////Gyroscope
 		if strings.Contains(selected, "y") {
 			for i, _ := range t_prev.Gyro {
-				milliseconds := float64(seconds*1000)+float64(((float64(1000)/float64(len(t_prev.Gyro)))*float64(i)))
-				gyroCsv = append(gyroCsv, []string{floattostr(milliseconds),floattostr(t_prev.Gyro[i].X),floattostr(t_prev.Gyro[i].Y),floattostr(t_prev.Gyro[i].Z)})
+				milliseconds := float64(seconds*1000) + (float64(delta.Milliseconds())/float64(len(t_prev.Gyro)))*float64(i)
+				gyroCsv = append(gyroCsv, []string{floattostr(milliseconds),floattostr(t_prev.Gyro[i].X),floattostr(t_prev.Gyro[i].Y),floattostr(t_prev.Gyro[i].Z),int64tostr(t_prev.Gyro[i].TS)})
 			}
 		}
 		////////////////////Temperature

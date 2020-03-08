@@ -45,20 +45,39 @@ func (t *TELEM) IsZero() bool {
 	return t.GpsTime.Time.IsZero()
 }
 
-// try to populate a timestamp for every GPS row. probably bogus.
-func (t *TELEM) FillTimes(until time.Time) error {
-	len := len(t.Gps)
+// try to populate a timestamp for every GPS row. return delta between prior and current GPSU GPS times
+func (t *TELEM) FillTimes(until time.Time) time.Duration {
+
+	// Compute time delta between GPSU timestamps
 	diff := until.Sub(t.GpsTime.Time)
 
-	offset := diff.Seconds() / float64(len)
-
+	// Populate timestamps for GPS data, assuming linear distribution over the delta period
+	length := len(t.Gps)
+	offset := diff.Seconds() / float64(length)
 	for i, _ := range t.Gps {
 		dur := time.Duration(float64(i)*offset*1000) * time.Millisecond
 		ts := t.GpsTime.Time.Add(dur)
 		t.Gps[i].TS = ts.UnixNano() / 1000
 	}
 
-	return nil
+	// Populate timestamps for ACCL data, assuming linear distribution over the delta period
+	length = len(t.Accl)
+	offset = diff.Seconds() / float64(length)
+	for i, _ := range t.Accl {
+		dur := time.Duration(float64(i)*offset*1000) * time.Millisecond
+		ts := t.GpsTime.Time.Add(dur)
+		t.Accl[i].TS = ts.UnixNano() / 1000
+	}
+
+	// Populate timestamps for GYRO data, assuming linear distribution over the delta period
+	length = len(t.Gyro)
+	offset = diff.Seconds() / float64(length)
+	for i, _ := range t.Gyro {
+		dur := time.Duration(float64(i)*offset*1000) * time.Millisecond
+		ts := t.GpsTime.Time.Add(dur)
+		t.Gyro[i].TS = ts.UnixNano() / 1000
+	}
+	return diff
 }
 
 func (t *TELEM) ShitJson() []TELEM_OUT {
