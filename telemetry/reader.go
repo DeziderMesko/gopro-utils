@@ -143,7 +143,7 @@ func Read(f io.Reader) (*TELEM, error) {
 				} else if "GPSU" == label_string {
 					g := GPSU{}
 					g.Parse(value)
-					t.Time = g
+					t.GpsTime = g
 				} else if "ACCL" == label_string {
 					a := ACCL{}
 					err := a.Parse(value, &s)

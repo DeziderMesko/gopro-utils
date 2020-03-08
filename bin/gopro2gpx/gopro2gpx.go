@@ -59,7 +59,7 @@ func main() {
 			continue
 		}
 
-		// process until t.Time
+		// process until t.GpsTime
 		t_prev.FillTimes(t.Time.Time)
 		if t_prev.GpsAccuracy.Accuracy < uint16(*accuracyThreshold) && t_prev.GpsFix.F >= uint32(*fixThreshold) {
 			telems := t_prev.ShitJson()

@@ -111,9 +111,9 @@ func main() {
 			break
 		}
 
-		t_prev.FillTimes(t.Time.Time)
+		t_prev.FillTimes(t.GpsTime.Time)
 
-		//fmt.Println(t.Time.Time)
+		//fmt.Println(t.GpsTime.GpsTime)
 
 		///////////////////////////////////////////////////////////////////Modified to save CSV
 		////////////////////Gps

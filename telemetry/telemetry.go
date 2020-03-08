@@ -13,7 +13,7 @@ type TELEM struct {
 	Gyro        []GYRO
 	GpsFix      GPSF
 	GpsAccuracy GPSP
-	Time        GPSU
+	GpsTime     GPSU
 	Temp        TMPC
 }
 
@@ -36,25 +36,25 @@ func (t *TELEM) Clear() {
 	t.Accl = t.Accl[:0]
 	t.Gps = t.Gps[:0]
 	t.Gyro = t.Gyro[:0]
-	t.Time.Time = time.Time{}
+	t.GpsTime.Time = time.Time{}
 }
 
 // determines if the telem has data
 func (t *TELEM) IsZero() bool {
 	// hack.
-	return t.Time.Time.IsZero()
+	return t.GpsTime.Time.IsZero()
 }
 
 // try to populate a timestamp for every GPS row. probably bogus.
 func (t *TELEM) FillTimes(until time.Time) error {
 	len := len(t.Gps)
-	diff := until.Sub(t.Time.Time)
+	diff := until.Sub(t.GpsTime.Time)
 
 	offset := diff.Seconds() / float64(len)
 
 	for i, _ := range t.Gps {
 		dur := time.Duration(float64(i)*offset*1000) * time.Millisecond
-		ts := t.Time.Time.Add(dur)
+		ts := t.GpsTime.Time.Add(dur)
 		t.Gps[i].TS = ts.UnixNano() / 1000
 	}
 

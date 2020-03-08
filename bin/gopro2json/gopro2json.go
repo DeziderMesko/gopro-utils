@@ -52,7 +52,7 @@ func main() {
 			continue
 		}
 
-		// process until t.Time
+		// process until t.GpsTime
 		t_prev.FillTimes(t.Time.Time)
 
 		telems := t_prev.ShitJson()
