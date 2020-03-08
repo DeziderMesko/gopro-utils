@@ -1,11 +1,5 @@
 # GoPro Metadata Format Parser + GPMD2CSV
 
-**I have recently switched my efforts to a more comprehensive [JavaScript version of these tools](https://github.com/JuanIrache/gopro-telemetry), but feel free to send a PR if you think you can improve this one**
-
-Examples of what can be achieved: https://goprotelemetryextractor.com/gallery
-
-User friendly and cross-platform tool for extracting the telemetry: https://goprotelemetryextractor.com/free
-
 I forked stilldavid's project ( https://github.com/stilldavid/gopro-utils ) to achieve 3 things:
 
 - Export the data in csv format from /bin/gpmd2csv/gpmd2csv.go
@@ -31,15 +25,7 @@ For example, in order to export gyroscope and GPS data only we would do
 
 `gpmd2csv -i GOPR0001.bin -s yg`
 
-If `-s` is not specified, it will export all available data. More options could be added in the future.
-
-ToDo:
-
-- Add other sensors to JSON export
-
-This was my first ~~repository~~ fork. Any possible wrong practices are not intentional.
-
-If you liked this you might like some of my [app prototyping](https://prototyping.barcelona).
+If `-s` is not specified, it will export all available data.
 
 Here continues Stilldavid's work:
 ##############################################################################################################
@@ -61,10 +47,6 @@ Note the gap before GoPro MET should be a TAB, not a space. Also, the handler_na
 ---
 
 I spent some time trying to reverse-engineer the GoPro Metadata Format (GPMD or GPMDF) that is stored in GoPro Hero 5 cameras if GPS is enabled. This is what I found.
-
-Part of this code is in production on [Earthscape](https://public.earthscape.com/); for an example of what you can do with the extracted data, see [this video](https://public.earthscape.com/videos/10231).
-
-If you enjoy working on this sort of thing, please see our [careers page](https://churchillnavigation.com/careers/).
 
 ## Extracting the Metadata File
 
@@ -136,3 +118,10 @@ Types include:
 - `f` - 32 float
 
 For implementation details, see `reader.go` and other corresponding files in `telemetry/`.
+
+## References
+
+https://github.com/stilldavid/gopro-utils
+
+https://github.com/gopro/gpmf-parser
+
