@@ -1,2 +1,5 @@
 .DS_Store
 GPMD2CSV/bin/
+*.csv
+bin/gpmd2csv/gpmd2csv.exe
+workspace.xml
