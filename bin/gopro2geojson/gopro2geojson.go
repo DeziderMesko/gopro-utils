@@ -9,8 +9,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/DeziderMesko/gopro-utils/telemetry"
 	geojson "github.com/paulmach/go.geojson"
-	"github.com/mpr90/gopro-utils/telemetry"
 )
 
 func main() {

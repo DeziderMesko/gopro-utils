@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
 	"strconv"
+	"time"
 
-	"github.com/mpr90/gopro-utils/telemetry"
+	"github.com/DeziderMesko/gopro-utils/telemetry"
 	"github.com/mlouielu/gpxgo/gpx"
 )
 
@@ -63,20 +63,20 @@ func main() {
 		t_prev.FillTimes(t.GpsTime.Time)
 		if t_prev.GpsAccuracy.Accuracy < uint16(*accuracyThreshold) && t_prev.GpsFix.F >= uint32(*fixThreshold) {
 			telems := t_prev.ShitJson()
-			
+
 			for i, _ := range telems {
-			segment.AppendPoint(
-				&gpx.GPXPoint{
-					Point: gpx.Point{
-						Latitude:  telems[i].Latitude,
-						Longitude: telems[i].Longitude,
-						Elevation: *gpx.NewNullableFloat64(telems[i].Altitude),
+				segment.AppendPoint(
+					&gpx.GPXPoint{
+						Point: gpx.Point{
+							Latitude:  telems[i].Latitude,
+							Longitude: telems[i].Longitude,
+							Elevation: *gpx.NewNullableFloat64(telems[i].Altitude),
+						},
+						Timestamp: time.Unix(telems[i].TS/1000/1000, telems[i].TS%(1000*1000)*1000).UTC(),
+						Comment:   "GpsAccuracy: " + strconv.Itoa(int(t_prev.GpsAccuracy.Accuracy)) + "; GpsFix: " + strconv.Itoa(int(t_prev.GpsFix.F)),
 					},
-					Timestamp: time.Unix(telems[i].TS/1000/1000, telems[i].TS%(1000*1000)*1000).UTC(),
-					Comment: "GpsAccuracy: " + strconv.Itoa(int(t_prev.GpsAccuracy.Accuracy)) + "; GpsFix: " + strconv.Itoa(int(t_prev.GpsFix.F)),
-				},
-			)
-		}
+				)
+			}
 		}
 
 		*t_prev = *t

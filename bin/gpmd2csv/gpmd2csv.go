@@ -4,25 +4,27 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/mpr90/gopro-utils/telemetry"
 	"io"
 	"log"
 	"math"
 	"os"
+
+	"github.com/DeziderMesko/gopro-utils/telemetry"
+
 	//////used for csv
 	"strconv"
 	"strings"
 )
 
 type ACCLGYRO struct {
-	X  []float64
-	Y  []float64
-	Z  []float64
-	FilteredX  []float64
-	FilteredY  []float64
-	FilteredZ  []float64
-	Ms []float64
-	TS []int64
+	X         []float64
+	Y         []float64
+	Z         []float64
+	FilteredX []float64
+	FilteredY []float64
+	FilteredZ []float64
+	Ms        []float64
+	TS        []int64
 }
 
 func main() {
@@ -127,40 +129,40 @@ func main() {
 	var acclWriter, gyroWriter, tempWriter, gpsWriter *csv.Writer
 
 	////////////////////accelerometer
-	
+
 	if strings.Contains(selected, "a") {
-		acclCsv = [][]string{{"Milliseconds","AcclX","AcclY","AcclZ","TS","AcclX_Filt","AcclY_Filt","AcclZ_Filt"}}
-		acclFile, err := os.Create(nameOut[:len(nameOut)-4]+"-accl.csv")
+		acclCsv = [][]string{{"Milliseconds", "AcclX", "AcclY", "AcclZ", "TS", "AcclX_Filt", "AcclY_Filt", "AcclZ_Filt"}}
+		acclFile, err := os.Create(nameOut[:len(nameOut)-4] + "-accl.csv")
 		checkError("Cannot create accl.csv file", err)
 		defer acclFile.Close()
 		acclWriter = csv.NewWriter(acclFile)
 	}
-	
+
 	/////////////////////gyroscope
 	if strings.Contains(selected, "y") {
-		gyroCsv = [][]string{{"Milliseconds","GyroX","GyroY","GyroZ","TS","GyroX_Filt","GyroY_Filt","GyroZ_Filt"}}
-		gyroFile, err := os.Create(nameOut[:len(nameOut)-4]+"-gyro.csv")
+		gyroCsv = [][]string{{"Milliseconds", "GyroX", "GyroY", "GyroZ", "TS", "GyroX_Filt", "GyroY_Filt", "GyroZ_Filt"}}
+		gyroFile, err := os.Create(nameOut[:len(nameOut)-4] + "-gyro.csv")
 		checkError("Cannot create gyro.csv file", err)
 		defer gyroFile.Close()
 		gyroWriter = csv.NewWriter(gyroFile)
 	}
 	//////////////////////temperature
 	if strings.Contains(selected, "t") {
-		tempCsv = [][]string{{"Milliseconds","Temp"}}
-		tempFile, err := os.Create(nameOut[:len(nameOut)-4]+"-temp.csv")
+		tempCsv = [][]string{{"Milliseconds", "Temp"}}
+		tempFile, err := os.Create(nameOut[:len(nameOut)-4] + "-temp.csv")
 		checkError("Cannot create temp.csv file", err)
 		defer tempFile.Close()
 		tempWriter = csv.NewWriter(tempFile)
 	}
 	///////////////////////Uncomment for Gps
 	if strings.Contains(selected, "g") {
-		gpsCsv = [][]string{{"Milliseconds","Latitude","Longitude","Altitude","Speed","Speed3D","TS","GpsAccuracy","GpsFix"}}
-		gpsFile, err := os.Create(nameOut[:len(nameOut)-4]+"-gps.csv")
+		gpsCsv = [][]string{{"Milliseconds", "Latitude", "Longitude", "Altitude", "Speed", "Speed3D", "TS", "GpsAccuracy", "GpsFix"}}
+		gpsFile, err := os.Create(nameOut[:len(nameOut)-4] + "-gps.csv")
 		checkError("Cannot create gps.csv file", err)
 		defer gpsFile.Close()
 		gpsWriter = csv.NewWriter(gpsFile)
 	}
-    //////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////
 
 	telemFile, err := os.Open(*inName)
 	if err != nil {
@@ -205,26 +207,28 @@ func main() {
 
 		///////////////////////////////////////////////////////////////////Modified to save CSV
 		////////////////////Gps
-		
+
 		for i, _ := range t_prev.Gps {
-			if (initialMilliseconds <= 0) && (t_prev.Gps[i].TS > 0) { initialMilliseconds = float64(t_prev.Gps[i].TS) / 1000 }
+			if (initialMilliseconds <= 0) && (t_prev.Gps[i].TS > 0) {
+				initialMilliseconds = float64(t_prev.Gps[i].TS) / 1000
+			}
 			milliseconds := (float64(t_prev.Gps[i].TS) / 1000) - initialMilliseconds
-			if i == 0 {	//if GPS time we can use it for other sensors, otherwise keep seconds guess
-				seconds = milliseconds/1000
+			if i == 0 { //if GPS time we can use it for other sensors, otherwise keep seconds guess
+				seconds = milliseconds / 1000
 			}
 			if strings.Contains(selected, "g") {
-				gpsCsv = append(gpsCsv, []string{floattostr(milliseconds),floattostr(t_prev.Gps[i].Latitude),floattostr(t_prev.Gps[i].Longitude),floattostr(t_prev.Gps[i].Altitude),floattostr(t_prev.Gps[i].Speed),floattostr(t_prev.Gps[i].Speed3D),int64tostr(t_prev.Gps[i].TS),strconv.Itoa(int(t_prev.GpsAccuracy.Accuracy)),strconv.Itoa(int(t_prev.GpsFix.F))})
+				gpsCsv = append(gpsCsv, []string{floattostr(milliseconds), floattostr(t_prev.Gps[i].Latitude), floattostr(t_prev.Gps[i].Longitude), floattostr(t_prev.Gps[i].Altitude), floattostr(t_prev.Gps[i].Speed), floattostr(t_prev.Gps[i].Speed3D), int64tostr(t_prev.Gps[i].TS), strconv.Itoa(int(t_prev.GpsAccuracy.Accuracy)), strconv.Itoa(int(t_prev.GpsFix.F))})
 			}
 		}
 		/////////////////////Accelerometer
 		if strings.Contains(selected, "a") {
 			for i, _ := range t_prev.Accl {
 				milliseconds := float64(seconds*1000) + (float64(delta.Milliseconds())/float64(len(t_prev.Accl)))*float64(i)
-				t_prev.Accl[i].Ms  = milliseconds
+				t_prev.Accl[i].Ms = milliseconds
 
-				accl.X  = append(accl.X,  t_prev.Accl[i].X)
-				accl.Y  = append(accl.Y,  t_prev.Accl[i].Y)
-				accl.Z  = append(accl.Z,  t_prev.Accl[i].Z)
+				accl.X = append(accl.X, t_prev.Accl[i].X)
+				accl.Y = append(accl.Y, t_prev.Accl[i].Y)
+				accl.Z = append(accl.Z, t_prev.Accl[i].Z)
 				accl.TS = append(accl.TS, t_prev.Accl[i].TS)
 				accl.Ms = append(accl.Ms, t_prev.Accl[i].Ms)
 			}
@@ -233,22 +237,22 @@ func main() {
 		if strings.Contains(selected, "y") {
 			for i, _ := range t_prev.Gyro {
 				milliseconds := float64(seconds*1000) + (float64(delta.Milliseconds())/float64(len(t_prev.Gyro)))*float64(i)
-				t_prev.Gyro[i].Ms  = milliseconds
+				t_prev.Gyro[i].Ms = milliseconds
 
-				gyro.X  = append(gyro.X,  t_prev.Gyro[i].X)
-				gyro.Y  = append(gyro.Y,  t_prev.Gyro[i].Y)
-				gyro.Z  = append(gyro.Z,  t_prev.Gyro[i].Z)
+				gyro.X = append(gyro.X, t_prev.Gyro[i].X)
+				gyro.Y = append(gyro.Y, t_prev.Gyro[i].Y)
+				gyro.Z = append(gyro.Z, t_prev.Gyro[i].Z)
 				gyro.TS = append(gyro.TS, t_prev.Gyro[i].TS)
 				gyro.Ms = append(gyro.Ms, t_prev.Gyro[i].Ms)
 			}
 		}
 		////////////////////Temperature
 		if strings.Contains(selected, "t") {
-			milliseconds := seconds*1000
-			tempCsv = append(tempCsv, []string{floattostr(milliseconds),floattostr(float64(t_prev.Temp.Temp))})
+			milliseconds := seconds * 1000
+			tempCsv = append(tempCsv, []string{floattostr(milliseconds), floattostr(float64(t_prev.Temp.Temp))})
 		}
-	    //////////////////////////////////////////////////////////////////////////////////
-		
+		//////////////////////////////////////////////////////////////////////////////////
+
 		*t_prev = *t
 		t = &telemetry.TELEM{}
 		seconds++
@@ -303,7 +307,7 @@ func main() {
 		}
 		defer gpsWriter.Flush()
 	}
-    /////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////
 }
 
 func MyConvolve(input, kernels []float64) ([]float64, error) {
@@ -312,8 +316,8 @@ func MyConvolve(input, kernels []float64) ([]float64, error) {
 	}
 
 	output := make([]float64, len(input))
-	start := int(math.Floor(float64(len(kernels))/2))
-	end := len(input)-start
+	start := int(math.Floor(float64(len(kernels)) / 2))
+	end := len(input) - start
 
 	for i := start; i < end; i++ {
 		var sum float64
@@ -328,26 +332,22 @@ func MyConvolve(input, kernels []float64) ([]float64, error) {
 	return output, nil
 }
 
-
 ///////////for csv
 
 func floattostr(input_num float64) string {
 
-        // to convert a float number to a string
-    return strconv.FormatFloat(input_num, 'f', -1, 64)
+	// to convert a float number to a string
+	return strconv.FormatFloat(input_num, 'f', -1, 64)
 }
-
-
 
 func int64tostr(input_num int64) string {
 
-        // to convert a float number to a string
-    return strconv.FormatInt(input_num, 10)
+	// to convert a float number to a string
+	return strconv.FormatInt(input_num, 10)
 }
 
- func checkError(message string, err error) {
-    if err != nil {
-        log.Fatal(message, err)
-    }
+func checkError(message string, err error) {
+	if err != nil {
+		log.Fatal(message, err)
+	}
 }
-

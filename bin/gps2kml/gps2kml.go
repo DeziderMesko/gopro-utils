@@ -5,11 +5,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mpr90/gopro-utils/telemetry"//getting rid of some bugs
 	"io"
 	"os"
-	"time"
 	"strconv"
+	"time"
+
+	"github.com/DeziderMesko/gopro-utils/telemetry" //getting rid of some bugs
 )
 
 func main() {
@@ -27,27 +28,27 @@ func main() {
 		return
 	}
 	/*
-		<?xml version="1.0" encoding="UTF-8"?>
-		<kml xmlns="http://earth.google.com/kml/2.0">
-		<Document>
-		<Placemark>
-		<Point><coordinates>Longitude,Latitude,Altitude</coordinates></Point>
-		<TimeStamp>
-     		<when>Timestamp</when>
-		</TimeStamp>
-		</Placemark>
+				<?xml version="1.0" encoding="UTF-8"?>
+				<kml xmlns="http://earth.google.com/kml/2.0">
+				<Document>
+				<Placemark>
+				<Point><coordinates>Longitude,Latitude,Altitude</coordinates></Point>
+				<TimeStamp>
+		     		<when>Timestamp</when>
+				</TimeStamp>
+				</Placemark>
 
-		[LOOP]
-		<Placemark>
-		<Point><coordinates>LON,LAT,ALT</coordinates></Point>
-		<TimeStamp>
-     		<when>Timestamp</when>
-		</TimeStamp>
-		</Placemark>
-		[/LOOP]
+				[LOOP]
+				<Placemark>
+				<Point><coordinates>LON,LAT,ALT</coordinates></Point>
+				<TimeStamp>
+		     		<when>Timestamp</when>
+				</TimeStamp>
+				</Placemark>
+				[/LOOP]
 
-		</Document>
-		</kml>
+				</Document>
+				</kml>
 	*/
 	var gpsData = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://earth.google.com/kml/2.0\">\n<Document>\n"
 	gpsFile, err := os.Create(*outName)
